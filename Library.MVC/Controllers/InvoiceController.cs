@@ -8,25 +8,25 @@ using Microsoft.EntityFrameworkCore;
 using Library.Domain;
 using Library.MVC.Data;
 
-namespace Library.MVC.Controllers.InvoiceDemo
+namespace Library.MVC.Controllers
 {
-    public class Invoices0Controller : Controller
+    public class InvoiceController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public Invoices0Controller(ApplicationDbContext context)
+        public InvoiceController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Invoices
+        // GET: Invoice
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Invoices.Include(i => i.Customer);
             return View(await applicationDbContext.ToListAsync());
         }
 
-        // GET: Invoices/Details/5
+        // GET: Invoice/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -45,14 +45,14 @@ namespace Library.MVC.Controllers.InvoiceDemo
             return View(invoice);
         }
 
-        // GET: Invoices/Create
+        // GET: Invoice/Create
         public IActionResult Create()
         {
             ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name");
             return View();
         }
 
-        // POST: Invoices/Create
+        // POST: Invoice/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
@@ -69,7 +69,7 @@ namespace Library.MVC.Controllers.InvoiceDemo
             return View(invoice);
         }
 
-        // GET: Invoices/Edit/5
+        // GET: Invoice/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -86,7 +86,7 @@ namespace Library.MVC.Controllers.InvoiceDemo
             return View(invoice);
         }
 
-        // POST: Invoices/Edit/5
+        // POST: Invoice/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
@@ -122,7 +122,7 @@ namespace Library.MVC.Controllers.InvoiceDemo
             return View(invoice);
         }
 
-        // GET: Invoices/Delete/5
+        // GET: Invoice/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -141,7 +141,7 @@ namespace Library.MVC.Controllers.InvoiceDemo
             return View(invoice);
         }
 
-        // POST: Invoices/Delete/5
+        // POST: Invoice/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
