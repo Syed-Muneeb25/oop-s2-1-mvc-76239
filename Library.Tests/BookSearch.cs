@@ -34,7 +34,7 @@ namespace Library.Tests
                 }
             };
 
-            string search = "C#";
+            string search = "OOP";
 
             var result = books
                 .Where(b => b.Title.Contains(search) || b.Author.Contains(search))
