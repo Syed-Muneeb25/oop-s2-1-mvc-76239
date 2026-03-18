@@ -19,10 +19,71 @@ namespace Library.MVC.Controllers
             _context = context;
         }
 
-        // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, string? category, string? availability, string? sortOrder)
         {
-            return View(await _context.Books.ToListAsync());
+            var query = _context.Books.AsQueryable();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(b =>
+                    b.Title.Contains(search) ||
+                    b.Author.Contains(search));
+            }
+
+            // Category filter
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(b => b.Category == category);
+            }
+
+            // Availability filter
+            if (!string.IsNullOrWhiteSpace(availability))
+            {
+                if (availability == "Available")
+                {
+                    query = query.Where(b =>
+                        b.IsAvailable &&
+                        !_context.Loans.Any(l => l.BookId == b.Id && l.ReturnedDate == null));
+                }
+
+                if (availability == "Inavailable")
+                {
+                    query = query.Where(b =>
+                        !b.IsAvailable);
+                }
+
+                if (availability == "OnLoan")
+                {
+                    query = query.Where(b =>
+                        _context.Loans.Any(l => l.BookId == b.Id && l.ReturnedDate == null));
+                }
+            }
+
+
+            // Sorting
+            query = sortOrder switch
+            {
+                "title_asc" => query.OrderBy(b => b.Title),
+                "title_desc" => query.OrderByDescending(b => b.Title),
+                _ => query.OrderBy(b => b.Id)
+            };
+
+            var vm = new BookFilterViewModel
+            {
+                Search = search,
+                Category = category,
+                Availability = availability,
+                SortOrder = sortOrder,
+                Categories = await _context.Books
+                    .Select(b => b.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToListAsync(),
+                Books = await query.ToListAsync()
+            };
+
+            return View(vm);
         }
 
         // GET: Books/Details/5
@@ -153,5 +214,15 @@ namespace Library.MVC.Controllers
         {
             return _context.Books.Any(e => e.Id == id);
         }
+    }
+
+    internal class BookFilterViewModel
+    {
+        public string Search { get; set; }
+        public string Category { get; set; }
+        public string Availability { get; set; }
+        public string SortOrder { get; set; }
+        public List<string> Categories { get; set; }
+        public List<Book> Books { get; set; }
     }
 }

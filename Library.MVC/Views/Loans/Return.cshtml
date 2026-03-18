@@ -1,0 +1,32 @@
+﻿@model Library.Domain.Loan
+
+@{
+    ViewData["Title"] = "Return Book";
+}
+
+<h2>Return Book</h2>
+
+<h4>Are you sure you want to return this book?</h4>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Book</dt>
+        <dd class="col-sm-10">@Model.Book?.Title</dd>
+
+        <dt class="col-sm-2">Member</dt>
+        <dd class="col-sm-10">@Model.Member?.FullName</dd>
+
+        <dt class="col-sm-2">Loan Date</dt>
+        <dd class="col-sm-10">@Model.LoanDate</dd>
+
+        <dt class="col-sm-2">Due Date</dt>
+        <dd class="col-sm-10">@Model.DueDate</dd>
+    </dl>
+
+    <form asp-action="Return">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Confirm Return" class="btn btn-success" />
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

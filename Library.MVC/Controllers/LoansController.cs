@@ -22,7 +22,10 @@ namespace Library.MVC.Controllers
         // GET: Loans
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Loans.Include(l => l.Book).Include(l => l.Member);
+            var applicationDbContext = _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.Member);
+
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -61,14 +64,44 @@ namespace Library.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,MemberId,BookId,LoanDate,DueDate,ReturnedDate")] Loan loan)
         {
+            var book = await _context.Books.FindAsync(loan.BookId);
+
+            if (book == null)
+            {
+                ModelState.AddModelError("BookId", "Selected book was not found.");
+            }
+            else
+            {
+                bool hasActiveLoan = await _context.Loans
+                    .AnyAsync(l => l.BookId == loan.BookId && l.ReturnedDate == null);
+
+                if (!book.IsAvailable || hasActiveLoan)
+                {
+                    ModelState.AddModelError("BookId", "This book is already on an active loan.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(loan);
+
+                if (book != null)
+                {
+                    book.IsAvailable = false;
+                    _context.Update(book);
+                }
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Author", loan.BookId);
-            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "Email", loan.MemberId);
+
+            var availableBooks = _context.Books
+                .Where(b => b.IsAvailable || b.Id == loan.BookId)
+                .ToList();
+
+            ViewData["BookId"] = new SelectList(availableBooks, "Id", "Title", loan.BookId);
+            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "FullName", loan.MemberId);
+
             return View(loan);
         }
 
@@ -127,6 +160,58 @@ namespace Library.MVC.Controllers
             return View(loan);
         }
 
+        // GET: Loans/Return/5
+        public async Task<IActionResult> Return(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.Member)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan == null)
+            {
+                return NotFound();
+            }
+
+            return View(loan);
+        }
+
+        // POST: Loans/Return/5
+        [HttpPost, ActionName("Return")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReturnConfirmed(int id)
+        {
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan == null)
+            {
+                return NotFound();
+            }
+
+            if (loan.ReturnedDate == null)
+            {
+                loan.ReturnedDate = DateOnly.FromDateTime(DateTime.Now);
+
+                if (loan.Book != null)
+                {
+                    loan.Book.IsAvailable = true;
+                    _context.Update(loan.Book);
+                }
+
+                _context.Update(loan);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         // GET: Loans/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -152,9 +237,18 @@ namespace Library.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var loan = await _context.Loans.FindAsync(id);
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
             if (loan != null)
             {
+                if (loan.ReturnedDate == null && loan.Book != null)
+                {
+                    loan.Book.IsAvailable = true;
+                    _context.Update(loan.Book);
+                }
+
                 _context.Loans.Remove(loan);
             }
 
