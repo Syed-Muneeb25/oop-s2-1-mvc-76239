@@ -3,10 +3,13 @@ name: .NET CI
 on:
   push:
     branches:
+      - master
       - main
   pull_request:
     branches:
+      - master
       - main
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -22,10 +25,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore oop-s2-1-mvc-76239.sln
 
-      - name: Build project
-        run: dotnet build --no-restore --configuration Release
+      - name: Build solution
+        run: dotnet build oop-s2-1-mvc-76239.sln --no-restore --configuration Release
 
-      - name: Run unit tests
-        run: dotnet test --no-build --configuration Release
+      - name: Run tests
+        run: dotnet test oop-s2-1-mvc-76239.sln --no-build --configuration Release --verbosity normal
