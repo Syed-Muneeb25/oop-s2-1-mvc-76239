@@ -52,8 +52,8 @@ namespace Library.MVC.Controllers
         // GET: Loans/Create
         public IActionResult Create()
         {
-            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Author");
-            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "Email");
+            ViewData["BookId"] = new SelectList(_context.Books.Where(b => b.IsAvailable), "Id", "Title");
+            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "FullName");
             return View();
         }
 
@@ -95,12 +95,19 @@ namespace Library.MVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var availableBooks = _context.Books
-                .Where(b => b.IsAvailable || b.Id == loan.BookId)
-                .ToList();
+            ViewData["BookId"] = new SelectList(
+                _context.Books.Where(b => b.IsAvailable || b.Id == loan.BookId),
+                "Id",
+                "Title",
+                loan.BookId
+            );
 
-            ViewData["BookId"] = new SelectList(availableBooks, "Id", "Title", loan.BookId);
-            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "FullName", loan.MemberId);
+            ViewData["MemberId"] = new SelectList(
+                _context.Members,
+                "Id",
+                "FullName",
+                loan.MemberId
+            );
 
             return View(loan);
         }
@@ -118,8 +125,9 @@ namespace Library.MVC.Controllers
             {
                 return NotFound();
             }
-            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Author", loan.BookId);
-            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "Email", loan.MemberId);
+
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", loan.BookId);
+            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "FullName", loan.MemberId);
             return View(loan);
         }
 
@@ -155,8 +163,8 @@ namespace Library.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Author", loan.BookId);
-            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "Email", loan.MemberId);
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", loan.BookId);
+            ViewData["MemberId"] = new SelectList(_context.Members, "Id", "FullName", loan.MemberId);
             return View(loan);
         }
 
