@@ -74,11 +74,16 @@ namespace Library.MVC.Data
                 adminUser = new IdentityUser
                 {
                     UserName = adminEmail,
-                    Email = adminEmail
+                    Email = adminEmail,
+                    EmailConfirmed = true
                 };
 
-                await userManager.CreateAsync(adminUser, adminPassword);
-                await userManager.AddToRoleAsync(adminUser, adminRole);
+                var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, adminRole);
+                }
             }
         }
 
