@@ -1,0 +1,1 @@
+A basic Community Library management MVC project with Books, Memebrs and Loan entities. Users can manage books and create loans. The project and 5 XUnitTest with CI workflow implemented using Github Actions
